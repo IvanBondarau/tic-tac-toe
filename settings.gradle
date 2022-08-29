@@ -1,0 +1,14 @@
+pluginManagement {
+    repositories {
+        maven { url 'https://repo.spring.io/milestone' }
+        maven { url 'https://repo.spring.io/snapshot' }
+        gradlePluginPortal()
+    }
+}
+rootProject.name = 'tic-tac-toe'
+include 'user'
+include 'statistics'
+include 'battle-service'
+include 'user-service'
+include 'statistics-service'
+
