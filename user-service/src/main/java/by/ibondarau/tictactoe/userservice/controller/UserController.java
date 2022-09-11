@@ -21,22 +21,42 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDto> get(@PathVariable Integer id) {
-        return ResponseEntity.ok(new UserResponseDto(id, "test@test.com", ZonedDateTime.now().toInstant()));
+        UserResponseDto userResponseDto = new UserResponseDto();
+        userResponseDto.setId(id);
+        userResponseDto.setEmail("test@test.com");
+        userResponseDto.setCreated(ZonedDateTime.now().toInstant());
+
+        return ResponseEntity.ok(userResponseDto);
     }
 
     @PostMapping("/login")
     public ResponseEntity<UserResponseDto> login(@RequestBody LoginUserDto loginUserDto) {
-        return ResponseEntity.ok(new UserResponseDto(1, loginUserDto.email(), ZonedDateTime.now().toInstant()));
+        UserResponseDto userResponseDto = new UserResponseDto();
+        userResponseDto.setId(1);
+        userResponseDto.setEmail(loginUserDto.getEmail());
+        userResponseDto.setCreated(ZonedDateTime.now().toInstant());
+
+        return ResponseEntity.ok(userResponseDto);
     }
 
     @PostMapping
     public ResponseEntity<UserResponseDto> register(@RequestBody InsertUserDto insertUserDto) {
-        return ResponseEntity.ok(new UserResponseDto(1, insertUserDto.email(), ZonedDateTime.now().toInstant()));
+        UserResponseDto userResponseDto = new UserResponseDto();
+        userResponseDto.setId(1);
+        userResponseDto.setEmail(insertUserDto.getEmail());
+        userResponseDto.setCreated(ZonedDateTime.now().toInstant());
+
+        return ResponseEntity.ok(userResponseDto);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDto> update(@PathVariable Integer id, @RequestBody InsertUserDto insertUserDto) {
-        return ResponseEntity.ok(new UserResponseDto(id, insertUserDto.email(), ZonedDateTime.now().toInstant()));
+        UserResponseDto userResponseDto = new UserResponseDto();
+        userResponseDto.setId(id);
+        userResponseDto.setEmail(insertUserDto.getEmail());
+        userResponseDto.setCreated(ZonedDateTime.now().toInstant());
+
+        return ResponseEntity.ok(userResponseDto);
     }
 
     @DeleteMapping("/{id}")
