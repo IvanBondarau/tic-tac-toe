@@ -17,23 +17,22 @@ public class StatisticsController {
     @GetMapping
     public ResponseEntity<UserStatisticsDto> getUserStatistics(
             @RequestParam("userId") Integer userId,
-            @RequestParam("lastGames") Integer lastGames
+            @RequestParam("lastBattles") Integer lastBattles
     ) {
-        UserStatisticsDto userStatisticsDto = new UserStatisticsDto();
-        userStatisticsDto.setUserId(userId);
-        userStatisticsDto.setWins(10);
-        userStatisticsDto.setDraws(53);
-        userStatisticsDto.setLosses(8);
+        UserStatisticsDto userStatisticsDto = new UserStatisticsDto()
+                .userId(userId)
+                .wins(10)
+                .draws(53)
+                .losses(8);
 
-        ShortBattleInfoDto shortBattleInfoDto = new ShortBattleInfoDto();
-        shortBattleInfoDto.setBattleId(1);
-        shortBattleInfoDto.setFirstUserId(userId);
-        shortBattleInfoDto.setSecondUserId(userId + 1);
-        shortBattleInfoDto.setTurns(9);
-        shortBattleInfoDto.setBattleFinished(ZonedDateTime.now().toInstant());
-        shortBattleInfoDto.setResult("Draw");
-
-        userStatisticsDto.setLastBattles(Collections.singletonList(shortBattleInfoDto));
+        ShortBattleInfoDto shortBattleInfoDto = new ShortBattleInfoDto()
+                .battleId(1)
+                .firstUserId(userId)
+                .secondUserId(userId + 1)
+                .turns(9)
+                .battleFinished(ZonedDateTime.now().toInstant())
+                .result("Draw");
+        userStatisticsDto.lastBattles(Collections.singletonList(shortBattleInfoDto));
         return ResponseEntity.ok(userStatisticsDto);
     }
 }

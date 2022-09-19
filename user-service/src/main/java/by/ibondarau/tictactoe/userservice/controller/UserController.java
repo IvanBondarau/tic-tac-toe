@@ -21,40 +21,40 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDto> get(@PathVariable Integer id) {
-        UserResponseDto userResponseDto = new UserResponseDto();
-        userResponseDto.setId(id);
-        userResponseDto.setEmail("test@test.com");
-        userResponseDto.setCreated(ZonedDateTime.now().toInstant());
+        UserResponseDto userResponseDto = new UserResponseDto()
+                .id(id)
+                .email("test@test.com")
+                .created(ZonedDateTime.now().toInstant());
 
         return ResponseEntity.ok(userResponseDto);
     }
 
     @PostMapping("/login")
     public ResponseEntity<UserResponseDto> login(@RequestBody LoginUserDto loginUserDto) {
-        UserResponseDto userResponseDto = new UserResponseDto();
-        userResponseDto.setId(1);
-        userResponseDto.setEmail(loginUserDto.getEmail());
-        userResponseDto.setCreated(ZonedDateTime.now().toInstant());
+        UserResponseDto userResponseDto = new UserResponseDto()
+                .id(1)
+                .email(loginUserDto.email())
+                .created(ZonedDateTime.now().toInstant());
 
         return ResponseEntity.ok(userResponseDto);
     }
 
     @PostMapping
     public ResponseEntity<UserResponseDto> register(@RequestBody InsertUserDto insertUserDto) {
-        UserResponseDto userResponseDto = new UserResponseDto();
-        userResponseDto.setId(1);
-        userResponseDto.setEmail(insertUserDto.getEmail());
-        userResponseDto.setCreated(ZonedDateTime.now().toInstant());
+        UserResponseDto userResponseDto = new UserResponseDto()
+                .id(1)
+                .email(insertUserDto.email())
+                .created(ZonedDateTime.now().toInstant());
 
         return ResponseEntity.ok(userResponseDto);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDto> update(@PathVariable Integer id, @RequestBody InsertUserDto insertUserDto) {
-        UserResponseDto userResponseDto = new UserResponseDto();
-        userResponseDto.setId(id);
-        userResponseDto.setEmail(insertUserDto.getEmail());
-        userResponseDto.setCreated(ZonedDateTime.now().toInstant());
+        UserResponseDto userResponseDto = new UserResponseDto()
+                .id(id)
+                .email(insertUserDto.email())
+                .created(ZonedDateTime.now().toInstant());
 
         return ResponseEntity.ok(userResponseDto);
     }

@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -25,82 +24,70 @@ public class BattleController {
 
     @GetMapping("/{battleId}")
     public ResponseEntity<BattleResponseDto> get(@PathVariable Integer battleId) {
-        BattleResponseDto battleResponseDto = new BattleResponseDto();
-        battleResponseDto.setId(battleId);
-        battleResponseDto.setFirstPlayerId(1);
-        battleResponseDto.setSecondPlayerId(2);
-        battleResponseDto.setSize(3);
-        battleResponseDto.setStatus("Finished");
-        battleResponseDto.setMoves(
-                Arrays.asList()
-        );
-        battleResponseDto.setNextMove(null);
-        battleResponseDto.setResult("First wins");
-        battleResponseDto.setCreated(ZonedDateTime.now().toInstant());
-        battleResponseDto.setStarted(ZonedDateTime.now().toInstant());
-        battleResponseDto.setFinished(ZonedDateTime.now().toInstant());
-
-        return ResponseEntity.ok(battleResponseDto);
+        BattleResponseDto dto = new BattleResponseDto()
+                .id(battleId)
+                .firstPlayerId(1)
+                .secondPlayerId(2)
+                .size(3)
+                .status("Finished")
+                .moves(Collections.emptyList())
+                .nextMove(null)
+                .result("First wins")
+                .created(ZonedDateTime.now().toInstant())
+                .started(ZonedDateTime.now().toInstant())
+                .finished(ZonedDateTime.now().toInstant());
+        return ResponseEntity.ok(dto);
     }
 
     @PostMapping
     public ResponseEntity<BattleResponseDto> createBattle(@RequestBody CreateBattleDto createBattleDto) {
-        BattleResponseDto battleResponseDto = new BattleResponseDto();
-        battleResponseDto.setId(1);
-        battleResponseDto.setFirstPlayerId(createBattleDto.getUserId());
-        battleResponseDto.setSecondPlayerId(2);
-        battleResponseDto.setSize(3);
-        battleResponseDto.setStatus("Created");
-        battleResponseDto.setMoves(
-                Collections.emptyList()
-        );
-        battleResponseDto.setNextMove(createBattleDto.getMovesFirst());
-        battleResponseDto.setResult(null);
-        battleResponseDto.setCreated(ZonedDateTime.now().toInstant());
-        battleResponseDto.setStarted(null);
-        battleResponseDto.setFinished(null);
-
-        return ResponseEntity.ok(battleResponseDto);
+        BattleResponseDto dto = new BattleResponseDto()
+                .id(1)
+                .firstPlayerId(createBattleDto.userId())
+                .secondPlayerId(2)
+                .size(3)
+                .status("Created")
+                .moves(Collections.emptyList())
+                .nextMove(1)
+                .result(null)
+                .created(ZonedDateTime.now().toInstant())
+                .started(null)
+                .finished(null);
+        return ResponseEntity.ok(dto);
     }
 
     @PostMapping("/{battleId}/join")
     public ResponseEntity<BattleResponseDto> joinBattle(@PathVariable Integer battleId, @RequestBody JoinBattleDto joinBattleDto) {
-        BattleResponseDto battleResponseDto = new BattleResponseDto();
-        battleResponseDto.setId(battleId);
-        battleResponseDto.setFirstPlayerId(1);
-        battleResponseDto.setSecondPlayerId(joinBattleDto.getSecondPlayerId());
-        battleResponseDto.setSize(3);
-        battleResponseDto.setStatus("Started");
-        battleResponseDto.setMoves(
-                Collections.emptyList()
-        );
-        battleResponseDto.setNextMove(1);
-        battleResponseDto.setResult(null);
-        battleResponseDto.setCreated(ZonedDateTime.now().toInstant());
-        battleResponseDto.setStarted(ZonedDateTime.now().toInstant());
-        battleResponseDto.setFinished(null);
-
-        return ResponseEntity.ok(battleResponseDto);
+        BattleResponseDto dto = new BattleResponseDto()
+                .id(battleId)
+                .firstPlayerId(1)
+                .secondPlayerId(joinBattleDto.secondPlayerId())
+                .size(3)
+                .status("Started")
+                .moves(Collections.emptyList())
+                .nextMove(1)
+                .result(null)
+                .created(ZonedDateTime.now().toInstant())
+                .started(ZonedDateTime.now().toInstant())
+                .finished(null);
+        return ResponseEntity.ok(dto);
     }
 
     @PostMapping("/{battleId}/move")
-    public ResponseEntity<BattleResponseDto> move(@PathVariable Integer battleId, @RequestBody MoveDto nextMove) {
-        BattleResponseDto battleResponseDto = new BattleResponseDto();
-        battleResponseDto.setId(battleId);
-        battleResponseDto.setFirstPlayerId(1);
-        battleResponseDto.setSecondPlayerId(2);
-        battleResponseDto.setSize(3);
-        battleResponseDto.setStatus("Started");
-        battleResponseDto.setMoves(
-                Collections.singletonList(nextMove)
-        );
-        battleResponseDto.setNextMove(1);
-        battleResponseDto.setResult(null);
-        battleResponseDto.setCreated(ZonedDateTime.now().toInstant());
-        battleResponseDto.setStarted(ZonedDateTime.now().toInstant());
-        battleResponseDto.setFinished(null);
-
-        return ResponseEntity.ok(battleResponseDto);
+    public ResponseEntity<BattleResponseDto> makeMove(@PathVariable Integer battleId, @RequestBody MoveDto nextMove) {
+        BattleResponseDto dto = new BattleResponseDto()
+                .id(battleId)
+                .firstPlayerId(1)
+                .secondPlayerId(2)
+                .size(3)
+                .status("Started")
+                .moves(Collections.singletonList(nextMove))
+                .nextMove(2)
+                .result(null)
+                .created(ZonedDateTime.now().toInstant())
+                .started(ZonedDateTime.now().toInstant())
+                .finished(null);
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping
