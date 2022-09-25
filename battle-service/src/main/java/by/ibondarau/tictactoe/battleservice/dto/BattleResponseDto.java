@@ -7,7 +7,7 @@ import java.time.Instant;
 import java.util.List;
 
 @Data
-@Accessors(fluent = true, chain = true)
+@Accessors(chain = true)
 public class BattleResponseDto {
     private Integer id;
     private Integer firstPlayerId;

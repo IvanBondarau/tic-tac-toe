@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    username: 'tic_tac_toe_admin'
+    password: '12345'
+    url: 'jdbc:postgresql://localhost:5432/tic_tac_toe'
+    driver-class-name: 'org.postgresql.Driver'
+  jpa:
+    database: postgresql
+    generate-ddl: true

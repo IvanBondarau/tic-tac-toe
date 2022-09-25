@@ -17,12 +17,19 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-logging'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    implementation 'org.mapstruct:mapstruct:1.5.2.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.2.Final'
+    implementation 'org.projectlombok:lombok-mapstruct-binding:0.1.0'
+
+    implementation 'org.postgresql:postgresql'
 }
 
 test {
