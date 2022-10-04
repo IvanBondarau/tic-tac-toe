@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 @Data
-@Accessors(fluent = true, chain = true)
+@Accessors(chain = true)
 public class JoinBattleDto {
     private Integer secondPlayerId;
 }

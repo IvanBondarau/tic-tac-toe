@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/battle")
@@ -60,21 +61,35 @@ public class BattleController {
 
     @PostMapping("/{battleId}/join")
     public ResponseEntity<BattleResponseDto> joinBattle(@PathVariable Integer battleId, @RequestBody JoinBattleDto joinBattleDto) {
-        BattleResponseDto dto = new BattleResponseDto();
-        return ResponseEntity.ok(dto);
+        logger.info("BattleController.createBattle() - started");
+        logger.info("BattleController.createBattle() - battleId=" + battleId + ", playerId=" + joinBattleDto.getSecondPlayerId());
+
+        BattleResponseDto battleResponseDto = modelMapper.battleToBattleResponse(
+                battleService.joinBattle(battleId, joinBattleDto.getSecondPlayerId())
+        );
+        return ResponseEntity.ok(battleResponseDto);
     }
 
     @PostMapping("/{battleId}/move")
     public ResponseEntity<BattleResponseDto> makeMove(@PathVariable Integer battleId, @RequestBody MoveDto nextMove) {
-        BattleResponseDto dto = new BattleResponseDto();
-        return ResponseEntity.ok(dto);
+        logger.info("BattleController.makeMove() - started");
+        logger.info("BattleController.makeMove() - battleId="+battleId+", nextMove="+nextMove);
+
+        Battle battle = battleService.makeMove(battleId, modelMapper.moveDtoToMove(nextMove));
+        return ResponseEntity.ok(modelMapper.battleToBattleResponse(battle));
     }
 
     @GetMapping
-    public ResponseEntity<List<BattleResponseDto>> searchBattles(
+    public ResponseEntity<List<BattleResponseDto>> findBattles(
             @RequestParam("active") Boolean active,
-            @RequestParam("pageSize") Integer pageSize,
-            @RequestParam("pageNum") Integer pageNum) {
-        return ResponseEntity.ok(new ArrayList<>());
+            @RequestParam("pageNum") Integer pageNum,
+            @RequestParam("pageSize") Integer pageSize) {
+        logger.info("BattleController.findBattles - Started");
+        logger.info("BattleController.findBattles - active=" + active + ", pageNum=" + pageNum + ", pageSize=" + pageSize);
+        return ResponseEntity.ok(
+                battleService.findBattles(active, pageNum, pageSize)
+                        .stream().map(modelMapper::battleToBattleResponse)
+                        .collect(Collectors.toList())
+        );
     }
 }
