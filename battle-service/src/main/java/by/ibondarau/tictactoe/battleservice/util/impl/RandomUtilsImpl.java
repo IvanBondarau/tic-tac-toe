@@ -1,6 +1,6 @@
-package by.ibondarau.tictactoe.battleservice.random.impl;
+package by.ibondarau.tictactoe.battleservice.util.impl;
 
-import by.ibondarau.tictactoe.battleservice.random.RandomUtils;
+import by.ibondarau.tictactoe.battleservice.util.RandomUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -9,7 +9,7 @@ import java.util.Random;
 
 @Component
 @Scope("singleton")
-public class RandomUtilsImpl implements RandomUtils {
+public final class RandomUtilsImpl implements RandomUtils {
 
     private final Random random;
 
@@ -17,10 +17,8 @@ public class RandomUtilsImpl implements RandomUtils {
         random = new SecureRandom();
     }
 
-
-    @SafeVarargs
     @Override
-    public final <T> T getRandomOf(T... args) {
+    public int getRandomOf(int... args) {
         return args[random.nextInt(args.length)];
     }
 }

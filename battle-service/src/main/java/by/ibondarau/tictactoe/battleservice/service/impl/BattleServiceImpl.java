@@ -1,14 +1,16 @@
 package by.ibondarau.tictactoe.battleservice.service.impl;
 
 import by.ibondarau.tictactoe.battleservice.dao.BattleDao;
+import by.ibondarau.tictactoe.battleservice.exception.BusinessException;
 import by.ibondarau.tictactoe.battleservice.exception.NotFoundException;
 import by.ibondarau.tictactoe.battleservice.model.Battle;
 import by.ibondarau.tictactoe.battleservice.model.BattleResult;
 import by.ibondarau.tictactoe.battleservice.model.BattleStatus;
 import by.ibondarau.tictactoe.battleservice.model.FirstMoveRule;
 import by.ibondarau.tictactoe.battleservice.model.Move;
-import by.ibondarau.tictactoe.battleservice.random.RandomUtils;
 import by.ibondarau.tictactoe.battleservice.service.BattleService;
+import by.ibondarau.tictactoe.battleservice.util.BattleUtils;
+import by.ibondarau.tictactoe.battleservice.util.RandomUtils;
 import com.sun.istack.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -17,7 +19,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -27,10 +28,13 @@ public class BattleServiceImpl implements BattleService {
     private final BattleDao battleDao;
     private final RandomUtils randomUtils;
 
+    private final BattleUtils battleUtils;
+
     @Autowired
-    public BattleServiceImpl(BattleDao battleDao, RandomUtils randomUtils) {
+    public BattleServiceImpl(BattleDao battleDao, RandomUtils randomUtils, BattleUtils battleUtils) {
         this.battleDao = battleDao;
         this.randomUtils = randomUtils;
+        this.battleUtils = battleUtils;
     }
 
     @Override
@@ -55,6 +59,11 @@ public class BattleServiceImpl implements BattleService {
     @Override
     public Battle joinBattle(int battleId, int secondPlayerId) {
         Battle battle = battleDao.findBattleByBattleId(battleId).orElseThrow(() -> new NotFoundException("Battle with id " + battleId + " not found"));
+
+        if (!BattleStatus.CREATED.equals(battle.getStatus()) || battle.getSecondPlayerId() != null) {
+            throw new BusinessException("Unable to join: invalid battle status");
+        }
+
         battle.setSecondPlayerId(secondPlayerId);
         battle.setStatus(BattleStatus.STARTED);
         battle.setStarted(ZonedDateTime.now().toInstant());
@@ -74,24 +83,34 @@ public class BattleServiceImpl implements BattleService {
     @Override
     public Battle makeMove(int battleId, Move move) {
         Battle battle = battleDao.findBattleByBattleId(battleId).orElseThrow(() -> new NotFoundException("Battle with id " + battleId + " not found"));
-        battle.getMoves().add(move);
-        move.setBattle(battle);
-        move.setTime(ZonedDateTime.now().toInstant());
+        addMove(battle, move);
         updateGameState(battle);
         battle = battleDao.save(battle);
         return battle;
     }
 
-    @Override
-    public List<Battle> findBattles(boolean active, int pageNum, int pageSize) {
-        List<BattleStatus> statuses = new LinkedList<>();
-        if (active) {
-            statuses.add(BattleStatus.STARTED);
-        } else {
-            statuses.add(BattleStatus.CREATED);
-            statuses.add(BattleStatus.STARTED);
-            statuses.add(BattleStatus.FINISHED);
+    private void addMove(Battle battle, Move move) {
+        Integer nextMovePlayerId = battleUtils.getNextMovePlayerId(battle);
+        if (nextMovePlayerId == null || !nextMovePlayerId.equals(move.getPlayerId())) {
+            throw new BusinessException("Bad move: invalid player id");
         }
+        if (move.getFirstCoordinate() >= battle.getSize() || move.getSecondCoordinate() >= battle.getSize()) {
+            throw new BusinessException("Bad move: coordinates are out of field bounds");
+        }
+
+        if (battle.getMoves().stream().anyMatch(battleMove ->
+                battleMove.getFirstCoordinate().equals(move.getFirstCoordinate())
+                        && battleMove.getSecondCoordinate().equals(move.getSecondCoordinate())
+        )) {
+            throw new BusinessException("Bad move: cell is not empty");
+        }
+        battle.getMoves().add(move);
+        move.setBattle(battle);
+        move.setTime(ZonedDateTime.now().toInstant());
+    }
+
+    @Override
+    public List<Battle> findBattles(List<BattleStatus> statuses, int pageNum, int pageSize) {
 
         Pageable pageable = PageRequest.of(pageNum, pageSize).withSort(Sort.by("created"));
 
@@ -141,7 +160,8 @@ public class BattleServiceImpl implements BattleService {
             columns[move.getSecondCoordinate()]++;
             if (move.getFirstCoordinate().equals(move.getSecondCoordinate())) {
                 mainDiagonal.getAndIncrement();
-            } else if (move.getFirstCoordinate() + move.getSecondCoordinate() == fieldSize + 1) {
+            }
+            if (move.getFirstCoordinate() + move.getSecondCoordinate() + 1 == fieldSize) {
                 antiDiagonal.getAndIncrement();
             }
 

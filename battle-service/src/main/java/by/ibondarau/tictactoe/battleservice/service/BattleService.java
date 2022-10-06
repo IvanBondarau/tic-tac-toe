@@ -2,6 +2,7 @@ package by.ibondarau.tictactoe.battleservice.service;
 
 
 import by.ibondarau.tictactoe.battleservice.model.Battle;
+import by.ibondarau.tictactoe.battleservice.model.BattleStatus;
 import by.ibondarau.tictactoe.battleservice.model.FirstMoveRule;
 import by.ibondarau.tictactoe.battleservice.model.Move;
 import com.sun.istack.NotNull;
@@ -16,5 +17,5 @@ public interface BattleService {
 
     Battle makeMove(int battleId, Move move);
 
-    List<Battle> findBattles(boolean active, int pageNum, int pageSize);
+    List<Battle> findBattles(List<BattleStatus> battleStatuses, int pageNum, int pageSize);
 }

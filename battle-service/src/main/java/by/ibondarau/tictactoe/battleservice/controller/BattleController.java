@@ -4,9 +4,11 @@ import by.ibondarau.tictactoe.battleservice.dto.BattleResponseDto;
 import by.ibondarau.tictactoe.battleservice.dto.CreateBattleDto;
 import by.ibondarau.tictactoe.battleservice.dto.JoinBattleDto;
 import by.ibondarau.tictactoe.battleservice.dto.MoveDto;
+import by.ibondarau.tictactoe.battleservice.exception.BadInputFormat;
 import by.ibondarau.tictactoe.battleservice.exception.NotFoundException;
 import by.ibondarau.tictactoe.battleservice.mapper.ModelMapper;
 import by.ibondarau.tictactoe.battleservice.model.Battle;
+import by.ibondarau.tictactoe.battleservice.model.BattleStatus;
 import by.ibondarau.tictactoe.battleservice.model.FirstMoveRule;
 import by.ibondarau.tictactoe.battleservice.service.BattleService;
 import org.slf4j.Logger;
@@ -22,6 +24,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -81,15 +86,37 @@ public class BattleController {
 
     @GetMapping
     public ResponseEntity<List<BattleResponseDto>> findBattles(
-            @RequestParam("active") Boolean active,
+            @RequestParam("active") String statusesString,
             @RequestParam("pageNum") Integer pageNum,
             @RequestParam("pageSize") Integer pageSize) {
         logger.info("BattleController.findBattles - Started");
-        logger.info("BattleController.findBattles - active=" + active + ", pageNum=" + pageNum + ", pageSize=" + pageSize);
+        logger.info("BattleController.findBattles - statuses=" + statusesString + ", pageNum=" + pageNum + ", pageSize=" + pageSize);
         return ResponseEntity.ok(
-                battleService.findBattles(active, pageNum, pageSize)
+                battleService.findBattles(parseStatuses(statusesString), pageNum, pageSize)
                         .stream().map(modelMapper::battleToBattleResponse)
                         .collect(Collectors.toList())
         );
+    }
+
+    private List<BattleStatus> parseStatuses(String statusesStr) {
+        String[] statusesArr = statusesStr.split(",");
+        if (statusesArr.length > 3) {
+            throw new BadInputFormat("No more than 3 statuses are allowed");
+        }
+        EnumSet<BattleStatus> battleStatuses = EnumSet.noneOf(BattleStatus.class);
+
+        Arrays.stream(statusesArr).forEach(statusStr -> {
+            try {
+                BattleStatus status = BattleStatus.valueOf(statusStr);
+                if (battleStatuses.contains(status)) {
+                    throw new BadInputFormat("Duplicated status");
+                } else {
+                    battleStatuses.add(status);
+                }
+            } catch (Exception e) {
+                throw new BadInputFormat("Wrong status name");
+            }
+        });
+        return battleStatuses.stream().toList();
     }
 }
