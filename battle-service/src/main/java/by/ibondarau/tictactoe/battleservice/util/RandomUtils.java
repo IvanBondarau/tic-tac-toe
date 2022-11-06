@@ -1,5 +1,7 @@
 package by.ibondarau.tictactoe.battleservice.util;
 
+import java.util.UUID;
+
 public interface RandomUtils {
-    int getRandomOf(int... args);
+    UUID getRandomOf(UUID... args);
 }

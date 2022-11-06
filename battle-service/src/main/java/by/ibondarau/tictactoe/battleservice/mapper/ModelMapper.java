@@ -9,6 +9,11 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
+
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.UUID;
 
 @Mapper(
         componentModel = "spring"
@@ -16,6 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class ModelMapper {
     @Mapping(source = "battleId", target = "id")
     @Mapping(source = ".", target = "nextMove", qualifiedByName = "toNextMove")
+    @Mapping(source = "createdAt", target = "created", qualifiedByName = "timestampToInstant")
+    @Mapping(source = "started", target = "started", qualifiedByName = "timestampToInstant")
+    @Mapping(source = "finished", target = "finished", qualifiedByName = "timestampToInstant")
     public abstract BattleResponseDto battleToBattleResponse(Battle battle);
 
     @Mapping(source = "firstCoordinate", target = "x")
@@ -31,7 +39,12 @@ public abstract class ModelMapper {
     protected BattleUtils battleUtils;
 
     @Named("toNextMove")
-    protected Integer toNextMove(Battle battle) {
+    protected UUID toNextMove(Battle battle) {
         return battleUtils.getNextMovePlayerId(battle);
+    }
+
+    @Named("timestampToInstant")
+    protected @Nullable Instant timestampToInstant(@Nullable Timestamp timestamp) {
+        return timestamp != null ? timestamp.toInstant() : null;
     }
 }

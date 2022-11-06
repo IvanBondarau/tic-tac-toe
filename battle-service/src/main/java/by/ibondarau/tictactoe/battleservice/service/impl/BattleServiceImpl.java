@@ -1,5 +1,6 @@
 package by.ibondarau.tictactoe.battleservice.service.impl;
 
+import by.ibondarau.tictactoe.battleservice.checker.GameChecker;
 import by.ibondarau.tictactoe.battleservice.dao.BattleDao;
 import by.ibondarau.tictactoe.battleservice.exception.BusinessException;
 import by.ibondarau.tictactoe.battleservice.exception.NotFoundException;
@@ -12,52 +13,46 @@ import by.ibondarau.tictactoe.battleservice.service.BattleService;
 import by.ibondarau.tictactoe.battleservice.util.BattleUtils;
 import by.ibondarau.tictactoe.battleservice.util.RandomUtils;
 import com.sun.istack.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class BattleServiceImpl implements BattleService {
-
     private final BattleDao battleDao;
     private final RandomUtils randomUtils;
-
     private final BattleUtils battleUtils;
 
-    @Autowired
-    public BattleServiceImpl(BattleDao battleDao, RandomUtils randomUtils, BattleUtils battleUtils) {
-        this.battleDao = battleDao;
-        this.randomUtils = randomUtils;
-        this.battleUtils = battleUtils;
-    }
+    private final GameChecker gameChecker;
 
     @Override
-    public Battle createBattle(int playerId, int size, @NotNull FirstMoveRule firstMoveRule) {
+    public Battle createBattle(UUID playerId, int size, @NotNull FirstMoveRule firstMoveRule) {
         Battle battle = new Battle()
                 .setFirstPlayerId(playerId)
                 .setSize(size)
                 .setFirstMoveRule(firstMoveRule)
-                .setCreated(ZonedDateTime.now().toInstant())
                 .setStatus(BattleStatus.CREATED);
         battleDao.save(battle);
         return battle;
     }
 
     @Override
-    public Battle getBattle(int battleId) {
+    public Battle getBattle(UUID battleId) {
         return battleDao
                 .findBattleByBattleId(battleId)
                 .orElseThrow(() -> new NotFoundException("Battle with id " + battleId + " not found"));
     }
 
     @Override
-    public Battle joinBattle(int battleId, int secondPlayerId) {
+    public Battle joinBattle(UUID battleId, UUID secondPlayerId) {
         Battle battle = battleDao.findBattleByBattleId(battleId).orElseThrow(() -> new NotFoundException("Battle with id " + battleId + " not found"));
 
         if (!BattleStatus.CREATED.equals(battle.getStatus()) || battle.getSecondPlayerId() != null) {
@@ -66,7 +61,7 @@ public class BattleServiceImpl implements BattleService {
 
         battle.setSecondPlayerId(secondPlayerId);
         battle.setStatus(BattleStatus.STARTED);
-        battle.setStarted(ZonedDateTime.now().toInstant());
+        battle.setStarted(Timestamp.from(ZonedDateTime.now().toInstant()));
         setFirstMovingPlayer(battle);
         battle = battleDao.save(battle);
         return battle;
@@ -81,7 +76,7 @@ public class BattleServiceImpl implements BattleService {
     }
 
     @Override
-    public Battle makeMove(int battleId, Move move) {
+    public Battle makeMove(UUID battleId, Move move) {
         Battle battle = battleDao.findBattleByBattleId(battleId).orElseThrow(() -> new NotFoundException("Battle with id " + battleId + " not found"));
         addMove(battle, move);
         updateGameState(battle);
@@ -90,7 +85,7 @@ public class BattleServiceImpl implements BattleService {
     }
 
     private void addMove(Battle battle, Move move) {
-        Integer nextMovePlayerId = battleUtils.getNextMovePlayerId(battle);
+        UUID nextMovePlayerId = battleUtils.getNextMovePlayerId(battle);
         if (nextMovePlayerId == null || !nextMovePlayerId.equals(move.getPlayerId())) {
             throw new BusinessException("Bad move: invalid player id");
         }
@@ -106,7 +101,6 @@ public class BattleServiceImpl implements BattleService {
         }
         battle.getMoves().add(move);
         move.setBattle(battle);
-        move.setTime(ZonedDateTime.now().toInstant());
     }
 
     @Override
@@ -119,8 +113,8 @@ public class BattleServiceImpl implements BattleService {
     }
 
     public void updateGameState(Battle battle) {
-        int lastMovingPlayerId = battle.getMoves().get(battle.getMoves().size() - 1).getPlayerId();
-        boolean result = checkWin(lastMovingPlayerId, battle.getSize(), battle.getMoves());
+        UUID lastMovingPlayerId = battle.getMoves().get(battle.getMoves().size() - 1).getPlayerId();
+        boolean result = gameChecker.checkWin(lastMovingPlayerId, battle.getSize(), battle.getMoves());
 
         if (result) {
             setGameWin(battle, lastMovingPlayerId);
@@ -131,9 +125,9 @@ public class BattleServiceImpl implements BattleService {
         }
     }
 
-    public void setGameWin(Battle battle, int winningPlayerId) {
+    private void setGameWin(Battle battle, UUID winningPlayerId) {
         battle.setStatus(BattleStatus.FINISHED);
-        battle.setFinished(ZonedDateTime.now().toInstant());
+        battle.setFinished(Timestamp.from(ZonedDateTime.now().toInstant()));
         if (battle.getFirstPlayerId() == winningPlayerId) {
             battle.setResult(BattleResult.FIRST_WINS);
         } else {
@@ -141,36 +135,10 @@ public class BattleServiceImpl implements BattleService {
         }
     }
 
-    public void setDraw(Battle battle) {
+    private void setDraw(Battle battle) {
         battle.setStatus(BattleStatus.FINISHED);
-        battle.setFinished(ZonedDateTime.now().toInstant());
+        battle.setFinished(Timestamp.from(ZonedDateTime.now().toInstant()));
         battle.setResult(BattleResult.DRAW);
     }
-
-    private boolean checkWin(int playerId, int fieldSize, List<Move> moves) {
-        int[] rows = new int[fieldSize];
-        int[] columns = new int[fieldSize];
-        AtomicInteger mainDiagonal = new AtomicInteger();
-        AtomicInteger antiDiagonal = new AtomicInteger();
-
-        return moves.stream().filter(
-                move -> move.getPlayerId().equals(playerId)
-        ).anyMatch(move -> {
-            rows[move.getFirstCoordinate()]++;
-            columns[move.getSecondCoordinate()]++;
-            if (move.getFirstCoordinate().equals(move.getSecondCoordinate())) {
-                mainDiagonal.getAndIncrement();
-            }
-            if (move.getFirstCoordinate() + move.getSecondCoordinate() + 1 == fieldSize) {
-                antiDiagonal.getAndIncrement();
-            }
-
-            return rows[move.getFirstCoordinate()] == fieldSize
-                    || columns[move.getSecondCoordinate()] == fieldSize
-                    || mainDiagonal.get() == fieldSize
-                    || antiDiagonal.get() == fieldSize;
-        });
-    }
-
 
 }

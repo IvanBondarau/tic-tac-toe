@@ -8,18 +8,19 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
+import java.util.UUID;
 
 @Component
 @Scope("singleton")
 public final class BattleUtilsImpl implements BattleUtils {
 
     @Override
-    public Integer getNextMovePlayerId(@NotNull Battle battle) {
+    public UUID getNextMovePlayerId(@NotNull Battle battle) {
         if (battle.getStatus() != BattleStatus.STARTED) {
             return null;
         }
-        Integer firstPlayerId = Objects.equals(battle.getFirstPlayerId(), battle.getFirstMovingPlayerId()) ? battle.getFirstPlayerId() : battle.getSecondPlayerId();
-        Integer secondPlayerId = Objects.equals(battle.getFirstPlayerId(), battle.getFirstMovingPlayerId()) ? battle.getSecondPlayerId() : battle.getFirstPlayerId();
+        UUID firstPlayerId = Objects.equals(battle.getFirstPlayerId(), battle.getFirstMovingPlayerId()) ? battle.getFirstPlayerId() : battle.getSecondPlayerId();
+        UUID secondPlayerId = Objects.equals(battle.getFirstPlayerId(), battle.getFirstMovingPlayerId()) ? battle.getSecondPlayerId() : battle.getFirstPlayerId();
 
         if (battle.getMoves() == null || battle.getMoves().isEmpty()) {
             return battle.getFirstMovingPlayerId();

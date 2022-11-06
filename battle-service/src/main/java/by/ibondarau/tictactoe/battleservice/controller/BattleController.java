@@ -5,16 +5,13 @@ import by.ibondarau.tictactoe.battleservice.dto.CreateBattleDto;
 import by.ibondarau.tictactoe.battleservice.dto.JoinBattleDto;
 import by.ibondarau.tictactoe.battleservice.dto.MoveDto;
 import by.ibondarau.tictactoe.battleservice.exception.BadInputFormat;
-import by.ibondarau.tictactoe.battleservice.exception.NotFoundException;
 import by.ibondarau.tictactoe.battleservice.mapper.ModelMapper;
 import by.ibondarau.tictactoe.battleservice.model.Battle;
 import by.ibondarau.tictactoe.battleservice.model.BattleStatus;
-import by.ibondarau.tictactoe.battleservice.model.FirstMoveRule;
 import by.ibondarau.tictactoe.battleservice.service.BattleService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,51 +20,47 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/battle")
+@RequiredArgsConstructor
+@Slf4j
 public class BattleController {
 
-    private static final Logger logger = LoggerFactory.getLogger(BattleController.class);
-
     private final BattleService battleService;
-
     private final ModelMapper modelMapper;
 
-    public BattleController(BattleService battleService, ModelMapper modelMapper) {
-        this.battleService = battleService;
-        this.modelMapper = modelMapper;
-    }
-
     @GetMapping("/{battleId}")
-    public ResponseEntity<BattleResponseDto> get(@PathVariable Integer battleId) {
+    public ResponseEntity<BattleResponseDto> get(@PathVariable UUID battleId) {
         return ResponseEntity.ok(modelMapper.battleToBattleResponse(battleService.getBattle(battleId)));
     }
 
     @PostMapping
     public ResponseEntity<BattleResponseDto> createBattle(@RequestBody CreateBattleDto createBattleDto) {
-        logger.info("BattleController.createBattle() - started");
-        logger.info("BattleController.createBattle() - createBattleDto=" + createBattleDto.toString());
+        log.debug("""
+                        BattleController.createBattle() - started
+                        Input parameters: createBattleDto={}""",
+                createBattleDto.toString());
 
         Battle battle = battleService.createBattle(
                 createBattleDto.getUserId(),
                 createBattleDto.getSize(),
-                FirstMoveRule.valueOf(createBattleDto.getFirstMoveRule())
+                createBattleDto.getFirstMoveRule()
         );
 
         return ResponseEntity.ok(modelMapper.battleToBattleResponse(battle));
     }
 
     @PostMapping("/{battleId}/join")
-    public ResponseEntity<BattleResponseDto> joinBattle(@PathVariable Integer battleId, @RequestBody JoinBattleDto joinBattleDto) {
-        logger.info("BattleController.createBattle() - started");
-        logger.info("BattleController.createBattle() - battleId=" + battleId + ", playerId=" + joinBattleDto.getSecondPlayerId());
+    public ResponseEntity<BattleResponseDto> joinBattle(@PathVariable UUID battleId, @RequestBody JoinBattleDto joinBattleDto) {
+        log.debug("""
+                        BattleController.joinBattle() - started
+                        Input parameters: battleId={}, playerId={}""",
+                battleId, joinBattleDto.toString());
 
         BattleResponseDto battleResponseDto = modelMapper.battleToBattleResponse(
                 battleService.joinBattle(battleId, joinBattleDto.getSecondPlayerId())
@@ -76,9 +69,10 @@ public class BattleController {
     }
 
     @PostMapping("/{battleId}/move")
-    public ResponseEntity<BattleResponseDto> makeMove(@PathVariable Integer battleId, @RequestBody MoveDto nextMove) {
-        logger.info("BattleController.makeMove() - started");
-        logger.info("BattleController.makeMove() - battleId="+battleId+", nextMove="+nextMove);
+    public ResponseEntity<BattleResponseDto> makeMove(@PathVariable UUID battleId, @RequestBody MoveDto nextMove) {
+        log.debug("""
+                BattleController.makeMove() - started
+                Input parameters: battleId={}, nextMove={}""", battleId, nextMove);
 
         Battle battle = battleService.makeMove(battleId, modelMapper.moveDtoToMove(nextMove));
         return ResponseEntity.ok(modelMapper.battleToBattleResponse(battle));
@@ -86,28 +80,29 @@ public class BattleController {
 
     @GetMapping
     public ResponseEntity<List<BattleResponseDto>> findBattles(
-            @RequestParam("active") String statusesString,
+            @RequestParam("status") List<BattleStatus> statuses,
             @RequestParam("pageNum") Integer pageNum,
             @RequestParam("pageSize") Integer pageSize) {
-        logger.info("BattleController.findBattles - Started");
-        logger.info("BattleController.findBattles - statuses=" + statusesString + ", pageNum=" + pageNum + ", pageSize=" + pageSize);
+        log.debug("""
+                BattleController.findBattles - Started
+                Input parameters: statuses={}, pageNum={}, pageSize={}""", statuses, pageNum, pageSize);
+        validateStatuses(statuses);
         return ResponseEntity.ok(
-                battleService.findBattles(parseStatuses(statusesString), pageNum, pageSize)
+                battleService.findBattles(statuses, pageNum, pageSize)
                         .stream().map(modelMapper::battleToBattleResponse)
                         .collect(Collectors.toList())
         );
     }
 
-    private List<BattleStatus> parseStatuses(String statusesStr) {
-        String[] statusesArr = statusesStr.split(",");
-        if (statusesArr.length > 3) {
+    private void validateStatuses(List<BattleStatus> statuses) {
+
+        if (statuses.size() > 3) {
             throw new BadInputFormat("No more than 3 statuses are allowed");
         }
         EnumSet<BattleStatus> battleStatuses = EnumSet.noneOf(BattleStatus.class);
 
-        Arrays.stream(statusesArr).forEach(statusStr -> {
+        statuses.forEach(status -> {
             try {
-                BattleStatus status = BattleStatus.valueOf(statusStr);
                 if (battleStatuses.contains(status)) {
                     throw new BadInputFormat("Duplicated status");
                 } else {
@@ -117,6 +112,5 @@ public class BattleController {
                 throw new BadInputFormat("Wrong status name");
             }
         });
-        return battleStatuses.stream().toList();
     }
 }

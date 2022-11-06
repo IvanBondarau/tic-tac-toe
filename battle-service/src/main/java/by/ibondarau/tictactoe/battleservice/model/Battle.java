@@ -4,51 +4,52 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "battle")
-@SequenceGenerator(name = "battle_sequence", sequenceName = "battle_sequence")
+@GenericGenerator(
+        name = "UUID",
+        strategy = "org.hibernate.id.UUIDGenerator"
+)
 @Data
 @Accessors(chain = true)
-public class Battle {
-
+public class Battle extends BaseEntity {
     @Id
-    @Column(name = "battle_id", nullable = false)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "battle_sequence")
-    private Integer battleId;
-    @Column(name = "size", nullable = false)
+    @GeneratedValue(generator = "UUID")
+    @Column(nullable = false)
+    private UUID battleId;
+    @Column(nullable = false)
     private Integer size;
-    @Column(name = "created", nullable = false)
-    private Instant created;
-    @Column(name = "started")
-    private Instant started;
-    @Column(name = "finished")
-    private Instant finished;
-    @Column(name = "status", nullable = false)
+    @Column
+    private Timestamp started;
+    @Column
+    private Timestamp finished;
+    @Column(nullable = false)
     private BattleStatus status;
-    @Column(name = "result")
+    @Column
     private BattleResult result;
-    @Column(name = "first_player_id")
-    private Integer firstPlayerId;
-    @Column(name = "second_player_id")
-    private Integer secondPlayerId;
-    @Column(name = "first_move_rule", nullable = false)
+    @Column
+    private UUID firstPlayerId;
+    @Column
+    private UUID secondPlayerId;
+    @Column(nullable = false)
     private FirstMoveRule firstMoveRule;
-    @Column(name = "first_moving_player_id")
-    private Integer firstMovingPlayerId;
+    @Column
+    private UUID firstMovingPlayerId;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

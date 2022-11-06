@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
 import java.util.Random;
+import java.util.UUID;
 
 @Component
 @Scope("singleton")
@@ -18,7 +19,7 @@ public final class RandomUtilsImpl implements RandomUtils {
     }
 
     @Override
-    public int getRandomOf(int... args) {
+    public UUID getRandomOf(UUID... args) {
         return args[random.nextInt(args.length)];
     }
 }

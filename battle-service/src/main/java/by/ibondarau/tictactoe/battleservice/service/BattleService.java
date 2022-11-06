@@ -8,14 +8,15 @@ import by.ibondarau.tictactoe.battleservice.model.Move;
 import com.sun.istack.NotNull;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface BattleService {
-    Battle createBattle(int playerId, int size, @NotNull FirstMoveRule firstMoveRule);
-    Battle getBattle(int battleId);
+    Battle createBattle(UUID playerId, int size, @NotNull FirstMoveRule firstMoveRule);
+    Battle getBattle(UUID battleId);
 
-    Battle joinBattle(int battleId, int secondPlayerId);
+    Battle joinBattle(UUID battleId, UUID secondPlayerId);
 
-    Battle makeMove(int battleId, Move move);
+    Battle makeMove(UUID battleId, Move move);
 
     List<Battle> findBattles(List<BattleStatus> battleStatuses, int pageNum, int pageSize);
 }
