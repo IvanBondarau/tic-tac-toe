@@ -3,14 +3,13 @@ package by.ibondarau.tictactoe.battleservice.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class BusinessException extends RuntimeException {
-
-    public BusinessException(String message) {
+@ResponseStatus(value = HttpStatus.CONFLICT)
+public class BadMoveException extends BusinessException {
+    public BadMoveException(String message) {
         super(message);
     }
 
-    public BusinessException(String message, Throwable cause) {
+    public BadMoveException(String message, Throwable cause) {
         super(message, cause);
     }
 }

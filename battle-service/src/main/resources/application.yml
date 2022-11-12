@@ -7,3 +7,4 @@ spring:
   jpa:
     database: postgresql
     generate-ddl: true
+debug: true

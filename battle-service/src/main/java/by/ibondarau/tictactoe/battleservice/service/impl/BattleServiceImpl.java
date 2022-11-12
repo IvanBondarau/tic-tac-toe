@@ -2,6 +2,7 @@ package by.ibondarau.tictactoe.battleservice.service.impl;
 
 import by.ibondarau.tictactoe.battleservice.checker.GameChecker;
 import by.ibondarau.tictactoe.battleservice.dao.BattleDao;
+import by.ibondarau.tictactoe.battleservice.exception.BadMoveException;
 import by.ibondarau.tictactoe.battleservice.exception.BusinessException;
 import by.ibondarau.tictactoe.battleservice.exception.NotFoundException;
 import by.ibondarau.tictactoe.battleservice.model.Battle;
@@ -87,17 +88,17 @@ public class BattleServiceImpl implements BattleService {
     private void addMove(Battle battle, Move move) {
         UUID nextMovePlayerId = battleUtils.getNextMovePlayerId(battle);
         if (nextMovePlayerId == null || !nextMovePlayerId.equals(move.getPlayerId())) {
-            throw new BusinessException("Bad move: invalid player id");
+            throw new BadMoveException("Invalid player id");
         }
         if (move.getFirstCoordinate() >= battle.getSize() || move.getSecondCoordinate() >= battle.getSize()) {
-            throw new BusinessException("Bad move: coordinates are out of field bounds");
+            throw new BadMoveException("Coordinates are out of field bounds");
         }
 
         if (battle.getMoves().stream().anyMatch(battleMove ->
                 battleMove.getFirstCoordinate().equals(move.getFirstCoordinate())
                         && battleMove.getSecondCoordinate().equals(move.getSecondCoordinate())
         )) {
-            throw new BusinessException("Bad move: cell is not empty");
+            throw new BadMoveException("Cell is not empty");
         }
         battle.getMoves().add(move);
         move.setBattle(battle);
