@@ -3,7 +3,6 @@ package by.ibondarau.tictactoe.battleservice.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.experimental.Accessors;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.CascadeType;
@@ -15,7 +14,6 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,7 +24,6 @@ import java.util.UUID;
         strategy = "org.hibernate.id.UUIDGenerator"
 )
 @Data
-@Accessors(chain = true)
 public class Battle extends BaseEntity {
     @Id
     @GeneratedValue(generator = "UUID")

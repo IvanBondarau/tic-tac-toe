@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
@@ -193,7 +194,7 @@ class BattleServiceImplTest {
                 .setFirstMoveRule(FirstMoveRule.RANDOM)
                 .setMoves(new LinkedList<>());
 
-        Mockito.when(gameChecker.checkWin(Mockito.any(), Mockito.anyInt(), Mockito.any())).thenReturn(false);
+        Mockito.when(gameChecker.checkPlayerWon(Mockito.any(), Mockito.anyInt(), Mockito.any())).thenReturn(false);
         Mockito.when(battleDao.findBattleByBattleId(Mockito.any())).thenReturn(Optional.of(battle));
         Mockito.when(battleDao.save(Mockito.any())).thenReturn(battle);
         Mockito.when(battleUtils.getNextMovePlayerId(Mockito.any())).thenReturn(firstPlayerId);
@@ -231,7 +232,7 @@ class BattleServiceImplTest {
                 .setFirstMoveRule(FirstMoveRule.RANDOM)
                 .setMoves(moves);
 
-        Mockito.when(gameChecker.checkWin(Mockito.any(), Mockito.anyInt(), Mockito.any())).thenReturn(false);
+        Mockito.when(gameChecker.checkPlayerWon(Mockito.any(), Mockito.anyInt(), Mockito.any())).thenReturn(false);
         Mockito.when(battleDao.findBattleByBattleId(Mockito.any())).thenReturn(Optional.of(battle));
         Mockito.when(battleDao.save(Mockito.any())).thenReturn(battle);
         Mockito.when(battleUtils.getNextMovePlayerId(Mockito.any())).thenReturn(secondPlayerId);
@@ -266,7 +267,7 @@ class BattleServiceImplTest {
                 .setFirstMoveRule(FirstMoveRule.RANDOM)
                 .setMoves(moves);
 
-        Mockito.when(gameChecker.checkWin(Mockito.any(), Mockito.anyInt(), Mockito.any())).thenReturn(true);
+        Mockito.when(gameChecker.checkPlayerWon(Mockito.any(), Mockito.anyInt(), Mockito.any())).thenReturn(true);
         Mockito.when(battleDao.findBattleByBattleId(Mockito.any())).thenReturn(Optional.of(battle));
         Mockito.when(battleDao.save(Mockito.any())).thenReturn(battle);
         Mockito.when(battleUtils.getNextMovePlayerId(Mockito.any())).thenReturn(firstPlayerId);
@@ -294,7 +295,6 @@ class BattleServiceImplTest {
         moves.add(new Move().setPlayerId(firstPlayerId).setFirstCoordinate(2).setSecondCoordinate(2));
 
         Battle battle = new Battle()
-
                 .setSize(3)
                 .setStatus(BattleStatus.STARTED)
                 .setFirstPlayerId(secondPlayerId)
@@ -346,7 +346,6 @@ class BattleServiceImplTest {
         List<Move> moves = new LinkedList<>();
 
         Battle battle = new Battle()
-
                 .setSize(3)
                 .setStatus(BattleStatus.STARTED)
                 .setFirstPlayerId(secondPlayerId)
@@ -369,8 +368,8 @@ class BattleServiceImplTest {
     @Test
     void testFilter() {
         List<Battle> results = new LinkedList<>();
-        List<BattleStatus> statuses = List.of(BattleStatus.STARTED);
-        Mockito.when(battleDao.findBattles(Mockito.eq(statuses), Mockito.any())).thenReturn(results);
+        Set<BattleStatus> statuses = Set.of(BattleStatus.STARTED);
+        Mockito.when(battleDao.findBattlesByStatusIn(Mockito.eq(statuses), Mockito.any())).thenReturn(results);
         List<Battle> searchResult = battleService.findBattles(statuses, 1, 1);
         Assertions.assertEquals(results, searchResult);
     }

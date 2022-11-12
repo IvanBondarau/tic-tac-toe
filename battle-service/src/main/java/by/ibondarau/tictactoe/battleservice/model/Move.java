@@ -3,7 +3,6 @@ package by.ibondarau.tictactoe.battleservice.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.experimental.Accessors;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.Column;
@@ -14,14 +13,12 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "move")
 
 @Data
-@Accessors(chain = true)
 public class Move extends BaseEntity {
     @Id
     @GeneratedValue(generator = "UUID")

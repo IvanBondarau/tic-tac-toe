@@ -12,7 +12,6 @@ import by.ibondarau.tictactoe.battleservice.model.Move;
 import by.ibondarau.tictactoe.battleservice.service.BattleService;
 import by.ibondarau.tictactoe.battleservice.util.BattleUtils;
 import by.ibondarau.tictactoe.battleservice.util.RandomUtils;
-import com.sun.istack.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -34,7 +34,7 @@ public class BattleServiceImpl implements BattleService {
     private final GameChecker gameChecker;
 
     @Override
-    public Battle createBattle(UUID playerId, int size, @NotNull FirstMoveRule firstMoveRule) {
+    public Battle createBattle(UUID playerId, int size, FirstMoveRule firstMoveRule) {
         Battle battle = new Battle()
                 .setFirstPlayerId(playerId)
                 .setSize(size)
@@ -104,19 +104,19 @@ public class BattleServiceImpl implements BattleService {
     }
 
     @Override
-    public List<Battle> findBattles(List<BattleStatus> statuses, int pageNum, int pageSize) {
+    public List<Battle> findBattles(Set<BattleStatus> statuses, int pageNum, int pageSize) {
 
-        Pageable pageable = PageRequest.of(pageNum, pageSize).withSort(Sort.by("created"));
+        Pageable pageable = PageRequest.of(pageNum, pageSize).withSort(Sort.by("createdAt"));
 
-        return battleDao.findBattles(statuses, pageable);
+        return battleDao.findBattlesByStatusIn(statuses, pageable);
 
     }
 
     public void updateGameState(Battle battle) {
         UUID lastMovingPlayerId = battle.getMoves().get(battle.getMoves().size() - 1).getPlayerId();
-        boolean result = gameChecker.checkWin(lastMovingPlayerId, battle.getSize(), battle.getMoves());
+        boolean playerWonGame = gameChecker.checkPlayerWon(lastMovingPlayerId, battle.getSize(), battle.getMoves());
 
-        if (result) {
+        if (playerWonGame) {
             setGameWin(battle, lastMovingPlayerId);
         } else {
             if (battle.getMoves().size() == battle.getSize() * battle.getSize()) {

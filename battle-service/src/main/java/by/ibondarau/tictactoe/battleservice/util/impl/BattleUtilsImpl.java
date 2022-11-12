@@ -3,7 +3,6 @@ package by.ibondarau.tictactoe.battleservice.util.impl;
 import by.ibondarau.tictactoe.battleservice.model.Battle;
 import by.ibondarau.tictactoe.battleservice.model.BattleStatus;
 import by.ibondarau.tictactoe.battleservice.util.BattleUtils;
-import com.sun.istack.NotNull;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +14,7 @@ import java.util.UUID;
 public final class BattleUtilsImpl implements BattleUtils {
 
     @Override
-    public UUID getNextMovePlayerId(@NotNull Battle battle) {
+    public UUID getNextMovePlayerId(Battle battle) {
         if (battle.getStatus() != BattleStatus.STARTED) {
             return null;
         }

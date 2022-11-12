@@ -6,5 +6,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface GameChecker {
-    boolean checkWin(UUID playerId, int fieldSize, List<Move> moves);
+    boolean checkPlayerWon(UUID playerId, int fieldSize, List<Move> moves);
 }

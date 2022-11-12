@@ -6,35 +6,47 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Component("GameChecker")
 public class GameCheckerImpl implements GameChecker {
     @Override
-    public boolean checkWin(UUID playerId, int fieldSize, List<Move> moves) {
+    public boolean checkPlayerWon(UUID playerId, int fieldSize, List<Move> moves) {
         int[] rows = new int[fieldSize];
         int[] columns = new int[fieldSize];
-        AtomicInteger mainDiagonal = new AtomicInteger();
-        AtomicInteger antiDiagonal = new AtomicInteger();
+        int mainDiagonal = 0;
+        int antiDiagonal = 0;
 
-        return moves.stream().filter(
-                move -> move.getPlayerId().equals(playerId)
-        ).anyMatch(move -> {
-            rows[move.getFirstCoordinate()]++;
-            columns[move.getSecondCoordinate()]++;
-            if (move.getFirstCoordinate().equals(move.getSecondCoordinate())) {
-                mainDiagonal.getAndIncrement();
+        List<Move> playerMoves = moves.stream().filter(move -> move.getPlayerId().equals(playerId)).toList();
+
+        for (Move move : playerMoves) {
+            int x = move.getFirstCoordinate();
+            int y = move.getSecondCoordinate();
+
+            rows[x]++;
+            columns[y]++;
+            if (x == y) {
+                mainDiagonal++;
             }
-            if (move.getFirstCoordinate() + move.getSecondCoordinate() + 1 == fieldSize) {
-                antiDiagonal.getAndIncrement();
+            if (x + y + 1 == fieldSize) {
+                antiDiagonal++;
             }
 
-            return rows[move.getFirstCoordinate()] == fieldSize
-                    || columns[move.getSecondCoordinate()] == fieldSize
-                    || mainDiagonal.get() == fieldSize
-                    || antiDiagonal.get() == fieldSize;
-        });
+            if (checkWin(fieldSize, rows[x], columns[y], mainDiagonal, antiDiagonal)) {
+                return true;
+            }
+        }
+
+        return false;
+
     }
+
+    private boolean checkWin(int fieldSize, int row, int column, int mainDiagonal, int antiDiagonal) {
+        return row == fieldSize
+                || column == fieldSize
+                || mainDiagonal == fieldSize
+                || antiDiagonal == fieldSize;
+    }
+
 }
 
 

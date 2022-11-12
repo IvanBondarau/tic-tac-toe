@@ -23,7 +23,7 @@ class GameCheckerImplTest {
         moves.add(new Move().setPlayerId(secondPlayerId).setFirstCoordinate(1).setSecondCoordinate(0));
         moves.add(new Move().setPlayerId(firstPlayerId).setFirstCoordinate(2).setSecondCoordinate(2));
 
-        Assertions.assertTrue(gameChecker.checkWin(firstPlayerId, 3, moves));
+        Assertions.assertTrue(gameChecker.checkPlayerWon(firstPlayerId, 3, moves));
     }
 
 
@@ -37,7 +37,7 @@ class GameCheckerImplTest {
         moves.add(new Move().setPlayerId(firstPlayerId).setFirstCoordinate(2).setSecondCoordinate(1));
         moves.add(new Move().setPlayerId(secondPlayerId).setFirstCoordinate(1).setSecondCoordinate(2));
 
-        Assertions.assertTrue(gameChecker.checkWin(secondPlayerId, 3, moves));
+        Assertions.assertTrue(gameChecker.checkPlayerWon(secondPlayerId, 3, moves));
     }
 
 
@@ -51,7 +51,7 @@ class GameCheckerImplTest {
         moves.add(new Move().setPlayerId(firstPlayerId).setFirstCoordinate(2).setSecondCoordinate(0));
         moves.add(new Move().setPlayerId(secondPlayerId).setFirstCoordinate(2).setSecondCoordinate(1));
 
-        Assertions.assertTrue(gameChecker.checkWin(secondPlayerId, 3, moves));
+        Assertions.assertTrue(gameChecker.checkPlayerWon(secondPlayerId, 3, moves));
 
     }
 
@@ -65,7 +65,7 @@ class GameCheckerImplTest {
         moves.add(new Move().setPlayerId(firstPlayerId).setFirstCoordinate(2).setSecondCoordinate(2));
         moves.add(new Move().setPlayerId(secondPlayerId).setFirstCoordinate(0).setSecondCoordinate(2));
 
-        Assertions.assertTrue(gameChecker.checkWin(secondPlayerId, 3, moves));
+        Assertions.assertTrue(gameChecker.checkPlayerWon(secondPlayerId, 3, moves));
     }
 
     @Test
@@ -82,7 +82,7 @@ class GameCheckerImplTest {
         moves.add(new Move().setPlayerId(secondPlayerId).setFirstCoordinate(2).setSecondCoordinate(1));
         moves.add(new Move().setPlayerId(secondPlayerId).setFirstCoordinate(2).setSecondCoordinate(2));
 
-        Assertions.assertFalse(gameChecker.checkWin(secondPlayerId, 3, moves));
+        Assertions.assertFalse(gameChecker.checkPlayerWon(secondPlayerId, 3, moves));
 
     }
 
