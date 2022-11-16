@@ -8,6 +8,8 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -36,14 +38,17 @@ public class Battle extends BaseEntity {
     @Column
     private Timestamp finished;
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private BattleStatus status;
     @Column
+    @Enumerated(EnumType.STRING)
     private BattleResult result;
     @Column
     private UUID firstPlayerId;
     @Column
     private UUID secondPlayerId;
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private FirstMoveRule firstMoveRule;
     @Column
     private UUID firstMovingPlayerId;

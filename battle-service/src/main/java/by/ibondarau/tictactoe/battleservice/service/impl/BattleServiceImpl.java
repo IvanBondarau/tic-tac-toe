@@ -90,7 +90,8 @@ public class BattleServiceImpl implements BattleService {
         if (nextMovePlayerId == null || !nextMovePlayerId.equals(move.getPlayerId())) {
             throw new BadMoveException("Invalid player id");
         }
-        if (move.getFirstCoordinate() >= battle.getSize() || move.getSecondCoordinate() >= battle.getSize()) {
+        if (move.getFirstCoordinate() < 0 || move.getSecondCoordinate() < 0 ||
+                move.getFirstCoordinate() >= battle.getSize() || move.getSecondCoordinate() >= battle.getSize()) {
             throw new BadMoveException("Coordinates are out of field bounds");
         }
 

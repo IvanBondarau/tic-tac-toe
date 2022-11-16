@@ -4,6 +4,7 @@ import by.ibondarau.tictactoe.battleservice.checker.GameChecker;
 import by.ibondarau.tictactoe.battleservice.dao.BattleDao;
 import by.ibondarau.tictactoe.battleservice.exception.BusinessException;
 import by.ibondarau.tictactoe.battleservice.exception.NotFoundException;
+import by.ibondarau.tictactoe.battleservice.helper.BattleTestHelper;
 import by.ibondarau.tictactoe.battleservice.model.Battle;
 import by.ibondarau.tictactoe.battleservice.model.BattleResult;
 import by.ibondarau.tictactoe.battleservice.model.BattleStatus;
@@ -31,19 +32,14 @@ class BattleServiceImplTest {
     private final UUID firstPlayerId = UUID.randomUUID();
     private final UUID secondPlayerId = UUID.randomUUID();
     private final UUID battleId = UUID.randomUUID();
-
     @Mock
     private BattleDao battleDao;
-
     @Mock
     private RandomUtils randomUtils;
-
     @Mock
     private BattleUtils battleUtils;
-
     @Mock
     private GameChecker gameChecker;
-
     @InjectMocks
     private BattleServiceImpl battleService;
 
@@ -86,10 +82,8 @@ class BattleServiceImplTest {
     @Test
     void testJoinBattleFirstPlayerStarts() {
 
-        Battle battle = new Battle()
-                .setStatus(BattleStatus.CREATED)
-                .setFirstPlayerId(firstPlayerId)
-                .setFirstMoveRule(FirstMoveRule.FIRST_GOES_FIRST);
+        Battle battle = BattleTestHelper.generateCreatedBattle(firstPlayerId, FirstMoveRule.FIRST_GOES_FIRST);
+
         Mockito.when(battleDao.findBattleByBattleId(Mockito.any())).thenReturn(Optional.of(battle));
         Mockito.when(battleDao.save(Mockito.any())).thenReturn(battle);
 
@@ -110,10 +104,8 @@ class BattleServiceImplTest {
     @Test
     void testJoinBattleSecondPlayerStarts() {
 
-        Battle battle = new Battle()
-                .setStatus(BattleStatus.CREATED)
-                .setFirstPlayerId(secondPlayerId)
-                .setFirstMoveRule(FirstMoveRule.SECOND_GOES_FIRST);
+        Battle battle = BattleTestHelper.generateCreatedBattle(secondPlayerId, FirstMoveRule.SECOND_GOES_FIRST);
+
         Mockito.when(battleDao.findBattleByBattleId(Mockito.any())).thenReturn(Optional.of(battle));
         Mockito.when(battleDao.save(Mockito.any())).thenReturn(battle);
 
@@ -133,10 +125,8 @@ class BattleServiceImplTest {
     @Test
     void testJoinBattleRandom() {
 
-        Battle battle = new Battle()
-                .setStatus(BattleStatus.CREATED)
-                .setFirstPlayerId(secondPlayerId)
-                .setFirstMoveRule(FirstMoveRule.RANDOM);
+        Battle battle = BattleTestHelper.generateCreatedBattle(secondPlayerId, FirstMoveRule.RANDOM);
+
         Mockito.when(battleDao.findBattleByBattleId(Mockito.any())).thenReturn(Optional.of(battle));
         Mockito.when(battleDao.save(Mockito.any())).thenReturn(battle);
         Mockito.when(randomUtils.getRandomOf(Mockito.any(), Mockito.any())).thenReturn(firstPlayerId);
@@ -167,12 +157,7 @@ class BattleServiceImplTest {
     @Test
     void testJoinBattleAlreadyStarted() {
 
-        Battle battle = new Battle()
-                .setStatus(BattleStatus.STARTED)
-                .setFirstPlayerId(secondPlayerId)
-                .setSecondPlayerId(firstPlayerId)
-                .setFirstMovingPlayerId(firstPlayerId)
-                .setFirstMoveRule(FirstMoveRule.RANDOM);
+        Battle battle = BattleTestHelper.generateStartedBattle(firstPlayerId, secondPlayerId, new LinkedList<>());
 
         Mockito.when(battleDao.findBattleByBattleId(Mockito.any())).thenReturn(Optional.of(battle));
 
@@ -185,101 +170,61 @@ class BattleServiceImplTest {
 
     @Test
     void testAddMove() {
-        Battle battle = new Battle()
-                .setSize(3)
-                .setStatus(BattleStatus.STARTED)
-                .setFirstPlayerId(firstPlayerId)
-                .setSecondPlayerId(secondPlayerId)
-                .setFirstMovingPlayerId(firstPlayerId)
-                .setFirstMoveRule(FirstMoveRule.RANDOM)
-                .setMoves(new LinkedList<>());
+        Battle battle = BattleTestHelper.generateStartedBattle(firstPlayerId, secondPlayerId, new LinkedList<>());
 
         Mockito.when(gameChecker.checkPlayerWon(Mockito.any(), Mockito.anyInt(), Mockito.any())).thenReturn(false);
         Mockito.when(battleDao.findBattleByBattleId(Mockito.any())).thenReturn(Optional.of(battle));
         Mockito.when(battleDao.save(Mockito.any())).thenReturn(battle);
         Mockito.when(battleUtils.getNextMovePlayerId(Mockito.any())).thenReturn(firstPlayerId);
 
-        Move move = new Move();
-        move.setPlayerId(firstPlayerId);
-        move.setFirstCoordinate(1);
-        move.setSecondCoordinate(1);
+        Move nextMove = BattleTestHelper.createMove(1, 1, firstPlayerId);
 
-        Battle result = battleService.makeMove(battleId, move);
+        Battle result = battleService.makeMove(battleId, nextMove);
         Assertions.assertEquals(BattleStatus.STARTED, result.getStatus());
-        Assertions.assertTrue(result.getMoves().contains(move));
+        Assertions.assertTrue(result.getMoves().contains(nextMove));
     }
 
 
     @Test
     void testAddMoveDraw() {
-        List<Move> moves = new LinkedList<>();
-        moves.add(new Move().setPlayerId(firstPlayerId).setFirstCoordinate(0).setSecondCoordinate(0));
-        moves.add(new Move().setPlayerId(firstPlayerId).setFirstCoordinate(0).setSecondCoordinate(1));
-        moves.add(new Move().setPlayerId(firstPlayerId).setFirstCoordinate(1).setSecondCoordinate(2));
-        moves.add(new Move().setPlayerId(firstPlayerId).setFirstCoordinate(2).setSecondCoordinate(0));
-        moves.add(new Move().setPlayerId(secondPlayerId).setFirstCoordinate(0).setSecondCoordinate(2));
-        moves.add(new Move().setPlayerId(secondPlayerId).setFirstCoordinate(1).setSecondCoordinate(0));
-        moves.add(new Move().setPlayerId(secondPlayerId).setFirstCoordinate(1).setSecondCoordinate(1));
-        moves.add(new Move().setPlayerId(secondPlayerId).setFirstCoordinate(2).setSecondCoordinate(1));
+        List<Move> moves = BattleTestHelper.createMoveListFromMatrix(
+                new char[][]{
+                        {'X', 'X', 'O'},
+                        {'O', 'O', 'X'},
+                        {'X', 'O', '.'}
+                }, firstPlayerId, secondPlayerId
+        );
 
-        Battle battle = new Battle()
-
-                .setSize(3)
-                .setStatus(BattleStatus.STARTED)
-                .setFirstPlayerId(secondPlayerId)
-                .setSecondPlayerId(firstPlayerId)
-                .setFirstMovingPlayerId(secondPlayerId)
-                .setFirstMoveRule(FirstMoveRule.RANDOM)
-                .setMoves(moves);
+        Battle battle = BattleTestHelper.generateStartedBattle(secondPlayerId, firstPlayerId, moves);
 
         Mockito.when(gameChecker.checkPlayerWon(Mockito.any(), Mockito.anyInt(), Mockito.any())).thenReturn(false);
         Mockito.when(battleDao.findBattleByBattleId(Mockito.any())).thenReturn(Optional.of(battle));
         Mockito.when(battleDao.save(Mockito.any())).thenReturn(battle);
-        Mockito.when(battleUtils.getNextMovePlayerId(Mockito.any())).thenReturn(secondPlayerId);
+        Mockito.when(battleUtils.getNextMovePlayerId(Mockito.any())).thenReturn(firstPlayerId);
 
-        Move move = new Move();
-        move.setPlayerId(secondPlayerId);
-        move.setFirstCoordinate(2);
-        move.setSecondCoordinate(2);
+        Move nextMove = BattleTestHelper.createMove(2, 2, firstPlayerId);
 
-        Battle result = battleService.makeMove(battleId, move);
+        Battle result = battleService.makeMove(battleId, nextMove);
         Assertions.assertEquals(BattleStatus.FINISHED, result.getStatus());
-        Assertions.assertTrue(result.getMoves().contains(move));
+        Assertions.assertTrue(result.getMoves().contains(nextMove));
         Assertions.assertNotNull(result.getFinished());
         Assertions.assertEquals(BattleResult.DRAW, result.getResult());
     }
 
     @Test
     void testAddMoveWin() {
-        List<Move> moves = new LinkedList<>();
-        moves.add(new Move().setPlayerId(firstPlayerId).setFirstCoordinate(1).setSecondCoordinate(1));
-        moves.add(new Move().setPlayerId(secondPlayerId).setFirstCoordinate(0).setSecondCoordinate(1));
-        moves.add(new Move().setPlayerId(firstPlayerId).setFirstCoordinate(0).setSecondCoordinate(0));
-        moves.add(new Move().setPlayerId(secondPlayerId).setFirstCoordinate(1).setSecondCoordinate(0));
-
-        Battle battle = new Battle()
-
-                .setSize(3)
-                .setStatus(BattleStatus.STARTED)
-                .setFirstPlayerId(secondPlayerId)
-                .setSecondPlayerId(firstPlayerId)
-                .setFirstMovingPlayerId(firstPlayerId)
-                .setFirstMoveRule(FirstMoveRule.RANDOM)
-                .setMoves(moves);
+        Battle battle = BattleTestHelper.generateStartedBattle(secondPlayerId, firstPlayerId, new LinkedList<>());
 
         Mockito.when(gameChecker.checkPlayerWon(Mockito.any(), Mockito.anyInt(), Mockito.any())).thenReturn(true);
         Mockito.when(battleDao.findBattleByBattleId(Mockito.any())).thenReturn(Optional.of(battle));
         Mockito.when(battleDao.save(Mockito.any())).thenReturn(battle);
         Mockito.when(battleUtils.getNextMovePlayerId(Mockito.any())).thenReturn(firstPlayerId);
 
-        Move move = new Move();
-        move.setPlayerId(firstPlayerId);
-        move.setFirstCoordinate(2);
-        move.setSecondCoordinate(2);
+        Move nextMove = BattleTestHelper.createMove(2, 2, firstPlayerId);
 
-        Battle result = battleService.makeMove(battleId, move);
+        Battle result = battleService.makeMove(battleId, nextMove);
         Assertions.assertEquals(BattleStatus.FINISHED, result.getStatus());
-        Assertions.assertTrue(result.getMoves().contains(move));
+        Assertions.assertTrue(result.getMoves().contains(nextMove));
         Assertions.assertNotNull(result.getFinished());
         Assertions.assertEquals(BattleResult.SECOND_WINS, result.getResult());
     }
@@ -288,81 +233,44 @@ class BattleServiceImplTest {
     @Test
     void testAddMoveBadTurn() {
         List<Move> moves = new LinkedList<>();
-        moves.add(new Move().setPlayerId(firstPlayerId).setFirstCoordinate(0).setSecondCoordinate(1));
-        moves.add(new Move().setPlayerId(secondPlayerId).setFirstCoordinate(2).setSecondCoordinate(0));
-        moves.add(new Move().setPlayerId(firstPlayerId).setFirstCoordinate(1).setSecondCoordinate(1));
-        moves.add(new Move().setPlayerId(secondPlayerId).setFirstCoordinate(1).setSecondCoordinate(1));
-        moves.add(new Move().setPlayerId(firstPlayerId).setFirstCoordinate(2).setSecondCoordinate(2));
+        moves.add(BattleTestHelper.createMove(0, 1, firstPlayerId));
 
-        Battle battle = new Battle()
-                .setSize(3)
-                .setStatus(BattleStatus.STARTED)
-                .setFirstPlayerId(secondPlayerId)
-                .setSecondPlayerId(firstPlayerId)
-                .setFirstMovingPlayerId(firstPlayerId)
-                .setFirstMoveRule(FirstMoveRule.RANDOM)
-                .setMoves(moves);
+        Battle battle = BattleTestHelper.generateStartedBattle(secondPlayerId, firstPlayerId, moves);
 
         Mockito.when(battleDao.findBattleByBattleId(Mockito.any())).thenReturn(Optional.of(battle));
         Mockito.when(battleUtils.getNextMovePlayerId(Mockito.any())).thenReturn(secondPlayerId);
 
-        Move move = new Move();
-        move.setPlayerId(firstPlayerId);
-        move.setFirstCoordinate(0);
-        move.setSecondCoordinate(2);
+        Move nextMove = BattleTestHelper.createMove(1, 0, firstPlayerId);
 
-        Assertions.assertThrows(BusinessException.class, () -> battleService.makeMove(battleId, move));
+        Assertions.assertThrows(BusinessException.class, () -> battleService.makeMove(battleId, nextMove));
     }
 
     @Test
     void testAddMoveDuplicatedMove() {
         List<Move> moves = new LinkedList<>();
-        moves.add(new Move().setPlayerId(firstPlayerId).setFirstCoordinate(1).setSecondCoordinate(1));
-        moves.add(new Move().setPlayerId(secondPlayerId).setFirstCoordinate(2).setSecondCoordinate(1));
+        moves.add(BattleTestHelper.createMove(1, 0, firstPlayerId));
+        moves.add(BattleTestHelper.createMove(0, 1, secondPlayerId));
 
-        Battle battle = new Battle()
-
-                .setSize(3)
-                .setStatus(BattleStatus.STARTED)
-                .setFirstPlayerId(secondPlayerId)
-                .setSecondPlayerId(firstPlayerId)
-                .setFirstMovingPlayerId(firstPlayerId)
-                .setFirstMoveRule(FirstMoveRule.RANDOM)
-                .setMoves(moves);
+        Battle battle = BattleTestHelper.generateStartedBattle(secondPlayerId, firstPlayerId, moves);
 
         Mockito.when(battleDao.findBattleByBattleId(Mockito.any())).thenReturn(Optional.of(battle));
         Mockito.when(battleUtils.getNextMovePlayerId(Mockito.any())).thenReturn(firstPlayerId);
 
-        Move move = new Move();
-        move.setPlayerId(firstPlayerId);
-        move.setFirstCoordinate(2);
-        move.setSecondCoordinate(1);
+        Move nextMove = BattleTestHelper.createMove(0, 1, firstPlayerId);
 
-        Assertions.assertThrows(BusinessException.class, () -> battleService.makeMove(battleId, move));
+        Assertions.assertThrows(BusinessException.class, () -> battleService.makeMove(battleId, nextMove));
     }
 
     @Test
     void testAddMoveOutOfBounds() {
-        List<Move> moves = new LinkedList<>();
-
-        Battle battle = new Battle()
-                .setSize(3)
-                .setStatus(BattleStatus.STARTED)
-                .setFirstPlayerId(secondPlayerId)
-                .setSecondPlayerId(firstPlayerId)
-                .setFirstMovingPlayerId(firstPlayerId)
-                .setFirstMoveRule(FirstMoveRule.RANDOM)
-                .setMoves(moves);
+        Battle battle = BattleTestHelper.generateStartedBattle(secondPlayerId, firstPlayerId, new LinkedList<>());
 
         Mockito.when(battleDao.findBattleByBattleId(Mockito.any())).thenReturn(Optional.of(battle));
         Mockito.when(battleUtils.getNextMovePlayerId(Mockito.any())).thenReturn(secondPlayerId);
 
-        Move move = new Move();
-        move.setPlayerId(secondPlayerId);
-        move.setFirstCoordinate(900);
-        move.setSecondCoordinate(900);
+        Move nextMove = BattleTestHelper.createMove(-1, 1, secondPlayerId);
 
-        Assertions.assertThrows(BusinessException.class, () -> battleService.makeMove(battleId, move));
+        Assertions.assertThrows(BusinessException.class, () -> battleService.makeMove(battleId, nextMove));
     }
 
     @Test
