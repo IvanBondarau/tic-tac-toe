@@ -1,12 +1,12 @@
 package by.ibondarau.tictactoe.battleservice.dto;
 
 import lombok.Data;
-import lombok.experimental.Accessors;
+
+import java.util.UUID;
 
 @Data
-@Accessors(fluent = true, chain = true)
 public class MoveDto {
-    private Integer playerId;
+    private UUID playerId;
     private Integer x;
     private Integer y;
 }

@@ -1,10 +1,10 @@
 package by.ibondarau.tictactoe.battleservice.dto;
 
 import lombok.Data;
-import lombok.experimental.Accessors;
+
+import java.util.UUID;
 
 @Data
-@Accessors(fluent = true, chain = true)
 public class JoinBattleDto {
-    private Integer secondPlayerId;
+    private UUID secondPlayerId;
 }
